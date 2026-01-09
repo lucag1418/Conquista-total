@@ -58,3 +58,31 @@ function actualizarUI() {
   document.getElementById("territorios").innerText =
     jugador.territorios.join(", ");
 }
+function guardarPartida() {
+  const estado = {
+    turno,
+    jugador,
+    territorios
+  };
+
+  localStorage.setItem("conquista_guardado", JSON.stringify(estado));
+  alert("Partida guardada correctamente");
+}
+
+function cargarPartida() {
+  const data = localStorage.getItem("conquista_guardado");
+
+  if (!data) {
+    alert("No hay partida guardada");
+    return;
+  }
+
+  const estado = JSON.parse(data);
+
+  turno = estado.turno;
+  jugador = estado.jugador;
+  Object.assign(territorios, estado.territorios);
+
+  actualizarUI();
+  alert("Partida cargada");
+}
