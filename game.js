@@ -3,7 +3,13 @@ let turno = 1;
 let relacion = "paz"; // estado inicial neutral
 let jugador = null;
 let ia = null;
-
+const coloresFaccion = {
+  "Corona Española": "#8b0000",
+  "Imperio Azteca": "#006400",
+  "Imperio Inca": "#b8860b",
+  "Civilización Maya": "#1e90ff",
+  "Neutral": "#555"
+};
 // ================== TERRITORIOS ==================
 const territorios = {
   "La Española": { dueño: "Neutral", riqueza: 100 },
@@ -107,25 +113,30 @@ function atacar(nombre) {
   }
 
   verificarVictoria();
-  actualizarUI();
+  actualizarUI(const div = document.createElement("div");
+div.className = "territorio";
+div.style.background =
+  coloresFaccion[data.dueño] || "#333";
+);
 }
 
 // ================== IA ==================
 function turnoIA() {
-  if (ia.ejercito < 60) return;
+  if (ia.ejercito < 50) return;
 
-  const posibles = Object.keys(territorios).filter(
-    t => territorios[t].dueño !== ia.faccion
-  );
+  const objetivos = Object.entries(territorios)
+    .filter(([_, t]) => t.dueño !== ia.faccion)
+    .sort((a, b) => b[1].riqueza - a[1].riqueza);
 
-  if (posibles.length === 0) return;
+  if (objetivos.length === 0) return;
 
-  const objetivo = posibles[Math.floor(Math.random() * posibles.length)];
-  territorios[objetivo].dueño = ia.faccion;
-  ia.territorios.push(objetivo);
+  const [nombre] = objetivos[0];
+
+  territorios[nombre].dueño = ia.faccion;
+  ia.territorios.push(nombre);
   ia.ejercito -= 30;
 
-  alert(ia.faccion + " conquista " + objetivo);
+  alert(ia.faccion + " conquista estratégicamente " + nombre);
 }
 
 // ================== TURNO ==================
