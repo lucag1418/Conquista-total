@@ -19,22 +19,24 @@
     }
 
     .panel {
-      margin: 12px;
+      margin: 12px auto;
       padding: 10px;
       border: 1px solid #444;
+      width: 90%;
+      max-width: 600px;
     }
 
-    #mapa button {
-      display: block;
-      margin: 6px auto;
-      width: 220px;
+    .territorio {
+      border: 1px solid #555;
+      padding: 8px;
+      margin: 6px 0;
     }
   </style>
 </head>
 
 <body>
 
-<!-- ================== SELECCIÓN DE FACCIÓN ================== -->
+<!-- ================= SELECCIÓN DE FACCIÓN ================= -->
 <div id="seleccion">
   <h1>Conquista del Nuevo Mundo</h1>
   <h2>Elegí tu facción</h2>
@@ -45,7 +47,7 @@
   <button onclick="iniciarJuego('Mayas')">Civilización Maya</button>
 </div>
 
-<!-- ================== JUEGO ================== -->
+<!-- ================= JUEGO ================= -->
 <div id="juego" style="display:none;">
 
   <h1>Conquista Total</h1>
@@ -56,40 +58,29 @@
     <strong>Oro:</strong> <span id="oro"></span><br>
     <strong>Ejército:</strong> <span id="ejercito"></span><br>
     <strong>Moral:</strong> <span id="moral"></span><br>
+    <strong>Relación:</strong> <span id="relacion"></span><br>
     <strong>Territorios:</strong> <span id="territorios"></span>
   </div>
 
-  <!-- ================== MAPA ================== -->
   <div class="panel">
     <h2>Mapa</h2>
-    <div id="mapa">
-      <button onclick="atacar('La Española')">Atacar La Española</button>
-      <button onclick="atacar('Tenochtitlan')">Atacar Tenochtitlan</button>
-      <button onclick="atacar('Cuzco')">Atacar Cuzco</button>
-      <button onclick="atacar('Tikal')">Atacar Tikal</button>
-    </div>
+    <div id="mapa"></div>
   </div>
 
-  <!-- ================== DIPLOMACIA ================== -->
   <div class="panel">
     <h2>Diplomacia</h2>
     <button onclick="pedirPaz()">Pedir Paz</button>
     <button onclick="formarAlianza()">Proponer Alianza</button>
-    <p>Relación actual: <strong><span id="relacion"></span></strong></p>
   </div>
 
-  <!-- ================== TURNO Y GUARDADO ================== -->
   <div class="panel">
-    <button onclick="siguienteTurno()">Siguiente Turno</button>
-    <br><br>
+    <button onclick="siguienteTurno()">Siguiente Turno</button><br><br>
     <button onclick="guardarPartida()">Guardar Partida</button>
     <button onclick="cargarPartida()">Cargar Partida</button>
   </div>
 
 </div>
 
-<!-- ================== SCRIPT ================== -->
 <script src="game.js"></script>
-
 </body>
 </html>
