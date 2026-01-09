@@ -2,13 +2,30 @@
 let turno = 1;
 
 let jugador = {
-  faccion: "Corona Española",
-  oro: 500,
-  ejercito: 100,
-  territorios: ["La Española"],
-  relaciones: {
-    aztecas: "neutral",
-    incas: "neutral"
+const facciones = {
+  España: {
+    faccion: "Corona Española",
+    oro: 500,
+    ejercito: 120,
+    territorios: ["La Española"]
+  },
+  Aztecas: {
+    faccion: "Imperio Azteca",
+    oro: 400,
+    ejercito: 140,
+    territorios: ["Tenochtitlan"]
+  },
+  Incas: {
+    faccion: "Imperio Inca",
+    oro: 450,
+    ejercito: 130,
+    territorios: ["Cuzco"]
+  },
+  Mayas: {
+    faccion: "Civilización Maya",
+    oro: 420,
+    ejercito: 125,
+    territorios: ["Tikal"]
   }
 };
 
@@ -16,6 +33,7 @@ const territorios = {
   "La Española": { dueño: "España", riqueza: 100 },
   "Tenochtitlan": { dueño: "Aztecas", riqueza: 200 },
   "Cuzco": { dueño: "Incas", riqueza: 180 }
+  "Tikal": { dueño: "Mayas", riqueza: 180 }
 };
 
 function siguienteTurno() {
