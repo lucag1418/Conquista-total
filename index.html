@@ -178,6 +178,10 @@ function endTurn(){
     document.getElementById("turn").innerText = currentPlayer;
     log(`--- Turno de ${currentPlayer} ---`);
 }
+    <br><br>
+<button onclick="guardarPartida()">Guardar Partida</button>
+<button onclick="cargarPartida()">Cargar Partida</button>
+
 
 function checkVictory(){
     let s = regions.filter(r=>r.owner==="España").length;
