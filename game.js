@@ -1,18 +1,20 @@
 // ================== ESTADO GLOBAL ==================
 let turno = 1;
-let relacion = "guerra"; // guerra | paz | alianza
+let relacion = "paz"; // estado inicial neutral
 let jugador = null;
 let ia = null;
 
 // ================== TERRITORIOS ==================
 const territorios = {
-  "La Española": { dueño: "Corona Española", riqueza: 100 },
-  "Tenochtitlan": { dueño: "Imperio Azteca", riqueza: 200 },
-  "Cuzco": { dueño: "Imperio Inca", riqueza: 180 },
-  "Tikal": { dueño: "Civilización Maya", riqueza: 160 }
+  "La Española": { dueño: "Neutral", riqueza: 100 },
+  "Tenochtitlan": { dueño: "Neutral", riqueza: 200 },
+  "Cuzco": { dueño: "Neutral", riqueza: 180 },
+  "Tikal": { dueño: "Neutral", riqueza: 160 },
+  "Yucatán": { dueño: "Neutral", riqueza: 140 },
+  "Andes del Norte": { dueño: "Neutral", riqueza: 150 }
 };
 
-// ================== INICIO DEL JUEGO ==================
+// ================== INICIO ==================
 function iniciarJuego(faccionElegida) {
   document.getElementById("seleccion").style.display = "none";
   document.getElementById("juego").style.display = "block";
@@ -23,28 +25,28 @@ function iniciarJuego(faccionElegida) {
       oro: 500,
       ejercito: 120,
       moral: 100,
-      territorios: ["La Española"]
+      territorios: []
     },
     Aztecas: {
       faccion: "Imperio Azteca",
       oro: 400,
       ejercito: 140,
       moral: 100,
-      territorios: ["Tenochtitlan"]
+      territorios: []
     },
     Incas: {
       faccion: "Imperio Inca",
       oro: 450,
       ejercito: 130,
       moral: 100,
-      territorios: ["Cuzco"]
+      territorios: []
     },
     Mayas: {
       faccion: "Civilización Maya",
       oro: 420,
       ejercito: 125,
       moral: 100,
-      territorios: ["Tikal"]
+      territorios: []
     }
   };
 
@@ -58,69 +60,58 @@ function iniciarJuego(faccionElegida) {
 
 // ================== DIPLOMACIA ==================
 function pedirPaz() {
-  if (Math.random() > 0.4) {
-    relacion = "paz";
-    alert("La IA acepta la paz");
-  } else {
-    alert("La IA rechaza la paz");
-  }
+  relacion = "paz";
+  alert("Se establece la paz");
   actualizarUI();
 }
 
 function formarAlianza() {
-  if (Math.random() > 0.6) {
+  if (Math.random() > 0.5) {
     relacion = "alianza";
-    alert("Se ha formado una alianza");
+    alert("Alianza aceptada");
   } else {
-    alert("La IA desconfía");
+    alert("La otra facción desconfía");
   }
   actualizarUI();
 }
 
-// ================== BATALLA ==================
-function atacar(territorio) {
-  if (territorios[territorio].dueño === jugador.faccion) {
+// ================== ATAQUE ==================
+function atacar(nombre) {
+  if (territorios[nombre].dueño === jugador.faccion) {
     alert("Ese territorio ya es tuyo");
     return;
   }
 
-  if (relacion === "alianza") {
-    alert("No podés atacar a un aliado");
+  if (relacion !== "guerra") {
+    relacion = "guerra";
+  }
+
+  if (jugador.ejercito < 40) {
+    alert("Ejército insuficiente");
     return;
   }
 
-  if (!resolverBatalla()) return;
+  const poderJugador = jugador.ejercito + jugador.moral + ventajaMilitar(jugador.faccion);
+  const poderDefensa = Math.random() * 200;
 
-  territorios[territorio].dueño = jugador.faccion;
-  jugador.territorios.push(territorio);
-  jugador.ejercito -= 20;
+  if (poderJugador > poderDefensa) {
+    territorios[nombre].dueño = jugador.faccion;
+    jugador.territorios.push(nombre);
+    jugador.ejercito -= 30;
+    jugador.moral += 5;
+    alert("Conquista exitosa: " + nombre);
+  } else {
+    jugador.ejercito -= 20;
+    jugador.moral -= 10;
+    alert("Derrota en la batalla");
+  }
 
-  alert("Territorio conquistado: " + territorio);
   verificarVictoria();
   actualizarUI();
 }
 
-function resolverBatalla() {
-  const poderJugador =
-    jugador.ejercito + jugador.moral + ventajaMilitar(jugador.faccion);
-  const poderIA =
-    ia.ejercito + ia.moral;
-
-  if (Math.random() * poderJugador > Math.random() * poderIA) {
-    jugador.moral += 5;
-    ia.moral -= 10;
-    return true;
-  } else {
-    jugador.ejercito -= 30;
-    jugador.moral -= 15;
-    alert("Derrota en la batalla");
-    return false;
-  }
-}
-
 // ================== IA ==================
 function turnoIA() {
-  ia.oro += 100;
   if (ia.ejercito < 60) return;
 
   const posibles = Object.keys(territorios).filter(
@@ -132,9 +123,9 @@ function turnoIA() {
   const objetivo = posibles[Math.floor(Math.random() * posibles.length)];
   territorios[objetivo].dueño = ia.faccion;
   ia.territorios.push(objetivo);
-  ia.ejercito -= 40;
+  ia.ejercito -= 30;
 
-  alert("La IA conquista " + objetivo);
+  alert(ia.faccion + " conquista " + objetivo);
 }
 
 // ================== TURNO ==================
@@ -166,12 +157,8 @@ function ventajaMilitar(faccion) {
 
 // ================== VICTORIA ==================
 function verificarVictoria() {
-  if (jugador.faccion === "Corona Española" && jugador.territorios.length >= 4) {
-    alert("Victoria histórica: Conquista del Nuevo Mundo");
-  }
-
-  if (jugador.faccion !== "Corona Española" && ia.ejercito <= 0) {
-    alert("Victoria histórica: Resistencia indígena exitosa");
+  if (jugador.territorios.length >= 4) {
+    alert("Victoria histórica alcanzada");
   }
 }
 
@@ -182,9 +169,29 @@ function actualizarUI() {
   document.getElementById("oro").innerText = jugador.oro;
   document.getElementById("ejercito").innerText = jugador.ejercito;
   document.getElementById("moral").innerText = jugador.moral;
-  document.getElementById("territorios").innerText =
-    jugador.territorios.join(", ");
   document.getElementById("relacion").innerText = relacion;
+  document.getElementById("territorios").innerText =
+    jugador.territorios.join(", ") || "Ninguno";
+
+  const mapa = document.getElementById("mapa");
+  mapa.innerHTML = "";
+
+  Object.entries(territorios).forEach(([nombre, data]) => {
+    const div = document.createElement("div");
+    div.className = "territorio";
+
+    div.innerHTML = `
+      <strong>${nombre}</strong><br>
+      Dueño: ${data.dueño}<br>
+      Riqueza: ${data.riqueza}<br>
+      ${data.dueño !== jugador.faccion
+        ? `<button onclick="atacar('${nombre}')">Atacar</button>`
+        : "<em>Territorio propio</em>"
+      }
+    `;
+
+    mapa.appendChild(div);
+  });
 }
 
 // ================== GUARDADO ==================
