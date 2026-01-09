@@ -57,6 +57,9 @@ Oro Nativos: <span id="goldNative">10</span>
 <button onclick="offerPeace()">Ofrecer Paz (8 oro)</button>
 <button onclick="offerAlliance()">Intentar Alianza (10 oro)</button>
 <button onclick="endTurn()">Terminar Turno</button>
+<br><br>
+<button onclick="guardarPartida()">Guardar Partida</button>
+<button onclick="cargarPartida()">Cargar Partida</button>
 </div>
 
 <h3>Registro</h3>
@@ -178,10 +181,6 @@ function endTurn(){
     document.getElementById("turn").innerText = currentPlayer;
     log(`--- Turno de ${currentPlayer} ---`);
 }
-    <br><br>
-<button onclick="guardarPartida()">Guardar Partida</button>
-<button onclick="cargarPartida()">Cargar Partida</button>
-
 
 function checkVictory(){
     let s = regions.filter(r=>r.owner==="España").length;
