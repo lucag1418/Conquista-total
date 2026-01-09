@@ -1,7 +1,30 @@
 // Estado del juego
 let turno = 1;
+let relacion = "guerra"; // guerra | paz | alianza;
+function pedirPaz() {
+  if (Math.random() > 0.4) {
+    relacion = "paz";
+    alert("La IA acepta la paz");
+  } else {
+    alert("La IA rechaza la paz");
+  }
+  actualizarUI();
+}
 
-let jugador = {
+function formarAlianza() {
+  if (Math.random() > 0.6) {
+    relacion = "alianza";
+    alert("Se ha formado una alianza");
+  } else {
+    alert("La IA desconfía");
+  }
+  actualizarUI();
+}
+
+function iniciarJuego(faccionElegida) {
+  document.getElementById("seleccion").style.display = "none";
+  document.getElementById("juego").style.display = "block";
+
 const facciones = {
   España: {
     faccion: "Corona Española",
@@ -29,17 +52,70 @@ const facciones = {
   }
 };
 
+  jugador = JSON.parse(JSON.stringify(facciones[faccionElegida]));
+
+  const iaFaccion = Object.keys(facciones).find(f => f !== faccionElegida);
+  ia = JSON.parse(JSON.stringify(facciones[iaFaccion]));
+
+  actualizarUI();
+}
+
+{let jugador = null;
+let ia = null;
+}
+function turnoIA() {
+  ia.oro += 100;
+
+  if (ia.ejercito > 60) {
+    const posibles = Object.keys(territorios).filter(
+      t => territorios[t].dueño !== ia.faccion
+    );
+
+    if (posibles.length > 0) {
+      const objetivo = posibles[Math.floor(Math.random() * posibles.length)];
+      territorios[objetivo].dueño = ia.faccion;
+      ia.territorios.push(objetivo);
+      ia.ejercito -= 40;
+      alert("La IA ha conquistado " + objetivo);
+    }
+  }
+}
+
 const territorios = {
-  "La Española": { dueño: "España", riqueza: 100 },
-  "Tenochtitlan": { dueño: "Aztecas", riqueza: 200 },
-  "Cuzco": { dueño: "Incas", riqueza: 180 }
-  "Tikal": { dueño: "Mayas", riqueza: 180 }
+  "La Española": { dueño: "España", riqueza: 100, moral: 100
+ },
+  "Tenochtitlan": { dueño: "Aztecas", riqueza: 200, moral: 100
+},
+  "Cuzco": { dueño: "Incas", riqueza: 180,  moral: 100
+}
+  "Tikal": { dueño: "Mayas", riqueza: 180, moral: 100}
 };
 
 function siguienteTurno() {
   turno++;
   jugador.oro += calcularIngresos();
+  turnoIA();
   actualizarUI();
+}
+function resolverBatalla(objetivo) {
+  if (relacion === "alianza") {
+    alert("No podés atacar a un aliado");
+    return false;
+  }
+
+  const poderJugador = jugador.ejercito + jugador.moral + ventajaMilitar(jugador.faccion);
+  const poderIA = ia.ejercito + ia.moral;
+
+  if (Math.random() * poderJugador > Math.random() * poderIA) {
+    jugador.moral += 5;
+    ia.moral -= 10;
+    return true;
+  } else {
+    jugador.ejercito -= 30;
+    jugador.moral -= 15;
+    alert("Derrota en la batalla");
+    return false;
+  }
 }
 
 function calcularIngresos() {
@@ -48,6 +124,29 @@ function calcularIngresos() {
     ingreso += territorios[t].riqueza;
   });
   return ingreso;
+}
+function ventajaMilitar(faccion) {
+  switch (faccion) {
+    case "Corona Española":
+      return 40; // armas de fuego
+    case "Imperio Azteca":
+      return 30; // guerra ritual
+    case "Imperio Inca":
+      return 25; // logística
+    case "Civilización Maya":
+      return 20; // estrategia y terreno
+    default:
+      return 0;
+  }
+}
+function verificarVictoria() {
+  if (jugador.faccion === "Corona Española" && jugador.territorios.length >= 4) {
+    alert("Victoria histórica: Conquista del Nuevo Mundo");
+  }
+
+  if (jugador.faccion !== "Corona Española" && ia.ejercito <= 0) {
+    alert("Victoria histórica: Resistencia indígena exitosa");
+  }
 }
 
 function atacar(territorio) {
