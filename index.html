@@ -5,47 +5,18 @@
 <title>Conquista del Nuevo Mundo</title>
 
 <style>
-body {
-  background:#1b1b1b;
-  color:#eee;
-  font-family:Arial;
-  text-align:center;
-}
-
-#mapa {
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:10px;
-  margin:20px;
-}
-
-.territorio {
-  border:2px solid #555;
-  padding:10px;
-  cursor:pointer;
-}
-
-.neutral { border-color:gray; }
-.españa { border-color:gold; }
-.inglaterra { border-color:red; }
-.azteca { border-color:green; }
-.inca { border-color:orange; }
-.maya { border-color:cyan; }
-
-.panel {
-  margin:10px;
-  padding:10px;
-  border:1px solid #444;
-}
-
-button { margin:4px; padding:6px 10px; }
-
-#log {
-  height:150px;
-  overflow:auto;
-  background:#111;
-  padding:8px;
-}
+body { background:#1b1b1b; color:#eee; font-family:Arial; text-align:center; }
+#mapa { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:20px; }
+.territorio { border:2px solid #555; padding:10px; cursor:pointer; }
+.neutral{border-color:gray}
+.españa{border-color:gold}
+.inglaterra{border-color:red}
+.azteca{border-color:green}
+.inca{border-color:orange}
+.maya{border-color:cyan}
+.panel{border:1px solid #444;padding:10px;margin:10px}
+button{margin:4px;padding:6px 10px}
+#log{height:140px;overflow:auto;background:#111;padding:8px}
 </style>
 </head>
 
@@ -54,40 +25,48 @@ button { margin:4px; padding:6px 10px; }
 <h1>Conquista del Nuevo Mundo</h1>
 
 <div id="seleccion">
-  <h2>Elegí tu facción</h2>
-  <button onclick="iniciarJuego('Corona Española')">España</button>
+  <h2>Elegí facción</h2>
+  <button onclick="iniciarJuego('España')">España</button>
   <button onclick="iniciarJuego('Inglaterra')">Inglaterra</button>
-  <button onclick="iniciarJuego('Imperio Azteca')">Aztecas</button>
-  <button onclick="iniciarJuego('Imperio Inca')">Incas</button>
-  <button onclick="iniciarJuego('Civilización Maya')">Mayas</button>
+  <button onclick="iniciarJuego('Aztecas')">Aztecas</button>
+  <button onclick="iniciarJuego('Incas')">Incas</button>
+  <button onclick="iniciarJuego('Mayas')">Mayas</button>
 </div>
 
 <div id="juego" style="display:none">
 
 <div class="panel">
-<b>Turno:</b> <span id="turno"></span> |
-<b>Oro:</b> <span id="oro"></span> |
-<b>Ejército:</b> <span id="ejercito"></span> |
-<b>Relación:</b> <span id="relacion"></span>
+Turno: <span id="turno"></span> |
+Oro: <span id="oro"></span> |
+Ejército: <span id="ejercito"></span> |
+Relación: <span id="relacion"></span>
 </div>
 
-<div class="panel">
-<button onclick="siguienteTurno()">Fin de turno</button>
-<button onclick="guardarPartida()">Guardar</button>
-<button onclick="cargarPartida()">Cargar</button>
-</div>
-
-<h3>Mapa</h3>
 <div id="mapa"></div>
 
-<div class="panel">
-<h3>Diplomacia</h3>
-<button onclick="pedirPaz()">Pedir Paz</button>
-<button onclick="formarAlianza()">Proponer Alianza</button>
-<button onclick="proponerMatrimonio()">Matrimonio Dinástico</button>
+<div class="panel" id="acciones" style="display:none">
+<h3 id="ciudadNombre"></h3>
+
+<button onclick="conquistar()">Conquistar</button>
+
+<h4>Diplomacia</h4>
+<button onclick="pedirComercio()">Pedir Comercio</button>
+<button onclick="pedirAlianza()">Pedir Alianza</button>
+<button onclick="pedirMatrimonio()">Matrimonio</button>
+
+<h4>Ciudad</h4>
+<button onclick="construir('mercado')">Mercado</button>
+<button onclick="construir('mina')">Mina</button>
+<button onclick="construir('cuartel')">Cuartel</button>
+<button onclick="reclutar()">Reclutar Tropas</button>
 </div>
 
-<h3>Registro</h3>
+<div class="panel">
+<button onclick="finTurno()">Fin de turno</button>
+<button onclick="guardar()">Guardar</button>
+<button onclick="cargar()">Cargar</button>
+</div>
+
 <div id="log"></div>
 
 </div>
