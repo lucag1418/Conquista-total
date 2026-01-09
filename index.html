@@ -1,75 +1,80 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Conquista del Nuevo Mundo</title>
+  <meta charset="UTF-8">
+  <title>Conquista Total</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #1e1e1e;
+      color: #eee;
+      margin: 0;
+      padding: 0;
+    }
 
-<style>
-body { background:#1b1b1b; color:#eee; font-family:Arial; text-align:center; }
-#mapa { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:20px; }
-.territorio { border:2px solid #555; padding:10px; cursor:pointer; }
-.neutral{border-color:gray}
-.españa{border-color:gold}
-.inglaterra{border-color:red}
-.azteca{border-color:green}
-.inca{border-color:orange}
-.maya{border-color:cyan}
-.panel{border:1px solid #444;padding:10px;margin:10px}
-button{margin:4px;padding:6px 10px}
-#log{height:140px;overflow:auto;background:#111;padding:8px}
-</style>
+    #topbar {
+      background: #111;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    #mapa {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 10px;
+    }
+
+    .territorio {
+      border: 2px solid #555;
+      padding: 10px;
+      cursor: pointer;
+      background: #2a2a2a;
+    }
+
+    .España { border-color: gold; }
+    .Inglaterra { border-color: red; }
+    .Imperio_Azteca { border-color: green; }
+    .Imperio_Inca { border-color: orange; }
+    .Civilización_Maya { border-color: cyan; }
+    .Neutral { border-color: gray; }
+
+    #panel {
+      padding: 10px;
+      background: #111;
+    }
+
+    button {
+      margin: 5px 0;
+      width: 100%;
+    }
+
+    #log {
+      height: 150px;
+      overflow-y: auto;
+      background: #000;
+      padding: 5px;
+      font-size: 13px;
+    }
+  </style>
 </head>
-
 <body>
 
-<h1>Conquista del Nuevo Mundo</h1>
-
-<div id="seleccion">
-  <h2>Elegí facción</h2>
-  <button onclick="iniciarJuego('España')">España</button>
-  <button onclick="iniciarJuego('Inglaterra')">Inglaterra</button>
-  <button onclick="iniciarJuego('Aztecas')">Aztecas</button>
-  <button onclick="iniciarJuego('Incas')">Incas</button>
-  <button onclick="iniciarJuego('Mayas')">Mayas</button>
-</div>
-
-<div id="juego" style="display:none">
-
-<div class="panel">
-Turno: <span id="turno"></span> |
-Oro: <span id="oro"></span> |
-Ejército: <span id="ejercito"></span> |
-Relación: <span id="relacion"></span>
+<div id="topbar">
+  <div>Turno: <span id="turno">1</span></div>
+  <div>Facción: <span id="faccionJugador"></span></div>
 </div>
 
 <div id="mapa"></div>
 
-<div class="panel" id="acciones" style="display:none">
-<h3 id="ciudadNombre"></h3>
-
-<button onclick="conquistar()">Conquistar</button>
-
-<h4>Diplomacia</h4>
-<button onclick="pedirComercio()">Pedir Comercio</button>
-<button onclick="pedirAlianza()">Pedir Alianza</button>
-<button onclick="pedirMatrimonio()">Matrimonio</button>
-
-<h4>Ciudad</h4>
-<button onclick="construir('mercado')">Mercado</button>
-<button onclick="construir('mina')">Mina</button>
-<button onclick="construir('cuartel')">Cuartel</button>
-<button onclick="reclutar()">Reclutar Tropas</button>
-</div>
-
-<div class="panel">
-<button onclick="finTurno()">Fin de turno</button>
-<button onclick="guardar()">Guardar</button>
-<button onclick="cargar()">Cargar</button>
+<div id="panel">
+  <h3 id="nombreTerritorio">Seleccioná una ciudad</h3>
+  <div id="acciones"></div>
+  <button onclick="siguienteTurno()">Siguiente Turno</button>
 </div>
 
 <div id="log"></div>
-
-</div>
 
 <script src="game.js"></script>
 </body>
