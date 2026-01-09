@@ -1,85 +1,80 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Conquista del Nuevo Mundo</title>
+<meta charset="UTF-8">
+<title>Conquista del Nuevo Mundo</title>
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #1e1e1e;
-      color: #eee;
-      text-align: center;
-    }
+<style>
+body {
+  background: #1e1e1e;
+  color: #eee;
+  font-family: Arial, sans-serif;
+}
 
-    button {
-      padding: 8px 14px;
-      margin: 5px;
-      cursor: pointer;
-    }
+#seleccion, #juego {
+  padding: 15px;
+}
 
-    .panel {
-      margin: 12px auto;
-      padding: 10px;
-      border: 1px solid #444;
-      width: 90%;
-      max-width: 600px;
-    }
+.region {
+  border: 1px solid #555;
+  padding: 8px;
+  margin: 4px;
+}
 
-    .territorio {
-      border: 1px solid #555;
-      padding: 8px;
-      margin: 6px 0;
-    }
-  </style>
+.España { background: #8b0000; }
+.Inglaterra { background: #002366; }
+.Aztecas { background: #006400; }
+.Incas { background: #8b4513; }
+.Mayas { background: #556b2f; }
+.Neutral { background: #333; }
+
+button {
+  margin: 4px;
+  padding: 6px 10px;
+}
+</style>
 </head>
 
 <body>
 
-<!-- ================= SELECCIÓN DE FACCIÓN ================= -->
 <div id="seleccion">
-  <h1>Conquista del Nuevo Mundo</h1>
   <h2>Elegí tu facción</h2>
-
-  <button onclick="iniciarJuego('España')">Corona Española</button>
-  <button onclick="iniciarJuego('Aztecas')">Imperio Azteca</button>
-  <button onclick="iniciarJuego('Incas')">Imperio Inca</button>
-  <button onclick="iniciarJuego('Mayas')">Civilización Maya</button>
+  <button onclick="iniciarJuego('España')">España</button>
+  <button onclick="iniciarJuego('Inglaterra')">Inglaterra</button>
+  <button onclick="iniciarJuego('Aztecas')">Aztecas</button>
+  <button onclick="iniciarJuego('Incas')">Incas</button>
+  <button onclick="iniciarJuego('Mayas')">Mayas</button>
 </div>
 
-<!-- ================= JUEGO ================= -->
-<div id="juego" style="display:none;">
+<div id="juego" style="display:none">
 
-  <h1>Conquista Total</h1>
+<h2>Turno <span id="turno"></span></h2>
 
-  <div class="panel">
-    <strong>Turno:</strong> <span id="turno"></span><br>
-    <strong>Facción:</strong> <span id="faccion"></span><br>
-    <strong>Oro:</strong> <span id="oro"></span><br>
-    <strong>Ejército:</strong> <span id="ejercito"></span><br>
-    <strong>Moral:</strong> <span id="moral"></span><br>
-    <strong>Relación:</strong> <span id="relacion"></span><br>
-    <strong>Territorios:</strong> <span id="territorios"></span>
-  </div>
+<p>
+<strong>Oro:</strong> <span id="oro"></span><br>
+<strong>Territorios:</strong> <span id="territorios"></span><br>
+<strong>Ejércitos:</strong> <span id="ejercitos"></span><br>
+<strong>Transportes:</strong> <span id="transportes"></span>
+</p>
 
-  <div class="panel">
-    <h2>Mapa</h2>
-    <div id="mapa"></div>
-  </div>
+<hr>
 
-  <div class="panel">
-    <h2>Diplomacia</h2>
-    <button onclick="pedirPaz()">Pedir Paz</button>
-    <button onclick="formarAlianza()">Proponer Alianza</button>
-  </div>
+<h3>Mapa</h3>
+<div id="mapa"></div>
 
-  <div class="panel">
-    <button onclick="siguienteTurno()">Siguiente Turno</button><br><br>
-    <button onclick="guardarPartida()">Guardar Partida</button>
-    <button onclick="cargarPartida()">Cargar Partida</button>
-  </div>
+<hr>
+
+<button onclick="reclutarEjercito()">Reclutar ejército</button>
+<button onclick="construirTransporte()">Construir transporte</button>
+<button onclick="moverEjercito()">Mover ejército</button>
+<button onclick="atacarTerritorio()">Atacar</button>
+<button onclick="siguienteTurno()">Finalizar turno</button>
 
 </div>
+
+<script src="game.js"></script>
+</body>
+</html>
 
 <script src="game.js"></script>
 </body>
