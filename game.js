@@ -19,6 +19,13 @@ const territorios = {
   "Yucatán": { dueño: "Neutral", riqueza: 140 },
   "Andes del Norte": { dueño: "Neutral", riqueza: 150 }
 };
+const fronteras = {
+  "La Española": ["Tenochtitlan"],
+  "Tenochtitlan": ["La Española", "Tikal", "Cuzco"],
+  "Tikal": ["Tenochtitlan"],
+  "Cuzco": ["Tenochtitlan"]
+};
+
 
 // ================== INICIO ==================
 function iniciarJuego(faccionElegida) {
@@ -83,9 +90,19 @@ function formarAlianza() {
 
 // ================== ATAQUE ==================
 function atacar(nombre) {
-  if (territorios[nombre].dueño === jugador.faccion) {
-    alert("Ese territorio ya es tuyo");
-    return;
+if (territorios[territorio].dueño === jugador.faccion) {
+  alert("Ese territorio ya es tuyo.");
+  return;
+}
+
+if (!esTerritorioFrontera(territorio)) {
+  alert("No es un territorio fronterizo.");
+  return;
+}
+
+if (relacion === "paz") {
+  relacion = "guerra";
+}
   }
 
   if (relacion !== "guerra") {
@@ -137,6 +154,15 @@ function turnoIA() {
   ia.ejercito -= 30;
 
   alert(ia.faccion + " conquista estratégicamente " + nombre);
+  const objetivos = Object.entries(territorios)
+  .filter(([nombre, t]) =>
+    t.dueño !== ia.faccion &&
+    ia.territorios.some(own =>
+      fronteras[own]?.includes(nombre)
+    )
+  )
+  .sort((a, b) => b[1].riqueza - a[1].riqueza);
+
 }
 
 // ================== TURNO ==================
@@ -165,6 +191,12 @@ function ventajaMilitar(faccion) {
     default: return 0;
   }
 }
+function esTerritorioFrontera(nombreTerritorio) {
+  return jugador.territorios.some(t =>
+    fronteras[t]?.includes(nombreTerritorio)
+  );
+}
+
 
 // ================== VICTORIA ==================
 function verificarVictoria() {
@@ -202,6 +234,14 @@ function actualizarUI() {
     `;
 
     mapa.appendChild(div);
+    if (data.dueño !== jugador.faccion && esTerritorioFrontera(nombre)) {
+  contenido += `<button onclick="atacar('${nombre}')">Atacar</button>`;
+} else if (data.dueño !== jugador.faccion) {
+  contenido += `<em>No fronterizo</em>`;
+} else {
+  contenido += `<em>Territorio propio</em>`;
+}
+
   });
 }
 
