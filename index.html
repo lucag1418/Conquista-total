@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Conquista del Nuevo Mundo</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #1e1e1e;
+    color: #eee;
+    text-align: center;
+}
+#map {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 20px;
+}
+.region {
+    padding: 12px;
+    border: 2px solid #555;
+    cursor: pointer;
+    background: #2e2e2e;
+}
+.spain { border-color: gold; }
+.native { border-color: green; }
+.neutral { border-color: gray; }
+button {
+    padding: 8px 14px;
+    margin: 5px;
+}
+#log {
+    background: #111;
+    padding: 10px;
+    height: 140px;
+    overflow-y: auto;
+}
+.panel {
+    margin: 10px;
+}
+</style>
+</head>
+
+<body>
+<h1>Conquista del Nuevo Mundo</h1>
+<h3>Turno: <span id="turn">España</span></h3>
+
+<div class="panel">
+Oro España: <span id="goldSpain">10</span> |
+Oro Nativos: <span id="goldNative">10</span>
+</div>
+
+<div id="map"></div>
+
+<div class="panel">
+<button onclick="recruit()">Reclutar Tropas (5 oro)</button>
+<button onclick="offerPeace()">Ofrecer Paz (8 oro)</button>
+<button onclick="offerAlliance()">Intentar Alianza (10 oro)</button>
+<button onclick="endTurn()">Terminar Turno</button>
+</div>
+
+<h3>Registro</h3>
+<div id="log"></div>
+
+<script>
+let currentPlayer = "España";
+let gold = { "España":10, "Nativos":10 };
+let peace = false;
+
+let regions = [
+    {name:"Caribe", owner:"España", troops:5, income:2},
+    {name:"México", owner:"Nativos", troops:6, income:3},
+    {name:"Yucatán", owner:"Neutral", troops:3, income:2},
+    {name:"Andes", owner:"Nativos", troops:7, income:3},
+    {name:"Amazonas", owner:"Neutral", troops:4, income:1},
+    {name:"Chile", owner:"Neutral", troops:3, income:2},
+    {name:"Río de la Plata", owner:"Neutral", troops:2, income:2},
+    {name:"Nueva Granada", owner:"Nativos", troops:5, income:2}
+];
+
+function renderMap(){
+    const map = document.getElementById("map");
+    map.innerHTML = "";
+    regions.forEach((r,i)=>{
+        let div = document.createElement("div");
+        div.className = "region " +
+            (r.owner==="España"?"spain":r.owner==="Nativos"?"native":"neutral");
+        div.innerHTML = `<b>${r.name}</b><br>
+        Dueño: ${r.owner}<br>
+        Tropas: ${r.troops}<br>
+        Oro: +${r.income}`;
+        div.onclick = ()=>selectRegion(i);
+        map.appendChild(div);
+    });
+
+    document.getElementById("goldSpain").innerText = gold["España"];
+    document.getElementById("goldNative").innerText = gold["Nativos"];
+}
+
+function log(t){
+    let l = document.getElementById("log");
+    l.innerHTML += t + "<br>";
+    l.scrollTop = l.scrollHeight;
+}
+
+function selectRegion(i){
+    let r = regions[i];
+    if(peace) return;
+
+    if(currentPlayer==="España" && r.owner!=="España"){
+        battle(i,"España");
+    }
+    if(currentPlayer==="Nativos" && r.owner!=="Nativos"){
+        battle(i,"Nativos");
+    }
+}
+
+function battle(i,attacker){
+    let def = regions[i].owner;
+    let attack = Math.floor(Math.random()*6)+4;
+    let defense = regions[i].troops;
+
+    log(`${attacker} ataca ${regions[i].name}`);
+
+    if(attack > defense){
+        regions[i].owner = attacker;
+        regions[i].troops = Math.max(1, attack-defense);
+        log(`Victoria de ${attacker}`);
+    } else {
+        regions[i].troops = Math.max(1, defense-attack);
+        log(`${def} resiste`);
+    }
+    checkVictory();
+    renderMap();
+}
+
+function recruit(){
+    if(gold[currentPlayer] < 5) return log("Oro insuficiente");
+    gold[currentPlayer] -= 5;
+    regions.forEach(r=>{
+        if(r.owner === currentPlayer) r.troops++;
+    });
+    log(`${currentPlayer} recluta tropas`);
+    renderMap();
+}
+
+function offerPeace(){
+    if(gold[currentPlayer] < 8) return log("Oro insuficiente");
+    gold[currentPlayer] -= 8;
+    peace = true;
+    log("Se firma una paz temporal");
+    renderMap();
+}
+
+function offerAlliance(){
+    if(gold[currentPlayer] < 10) return log("Oro insuficiente");
+    gold[currentPlayer] -= 10;
+    let success = Math.random() > 0.5;
+    if(success){
+        log("¡Alianza lograda! El enemigo pierde fuerza");
+        regions.forEach(r=>{
+            if(r.owner !== currentPlayer) r.troops = Math.max(1, r.troops-1);
+        });
+    } else {
+        log("Fracaso diplomático");
+    }
+    renderMap();
+}
+
+function endTurn(){
+    peace = false;
+    regions.forEach(r=>{
+        if(r.owner === currentPlayer){
+            gold[currentPlayer] += r.income;
+        }
+    });
+    currentPlayer = currentPlayer==="España"?"Nativos":"España";
+    document.getElementById("turn").innerText = currentPlayer;
+    log(`--- Turno de ${currentPlayer} ---`);
+}
+
+function checkVictory(){
+    let s = regions.filter(r=>r.owner==="España").length;
+    let n = regions.filter(r=>r.owner==="Nativos").length;
+    if(s===regions.length) alert("España domina el continente");
+    if(n===regions.length) alert("Los pueblos originarios resisten la conquista");
+}
+
+renderMap();
+log("Comienza la campaña...");
+</script>
+</body>
+</html>
