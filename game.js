@@ -4,11 +4,11 @@ let territorioSeleccionado = null;
 
 /* ================== FACCIONES ================== */
 const facciones = {
-  España: { nombre:"España", capital:"Madrid", territorios:["Madrid"], generales:[{nombre:"Hernán Cortés", territorio:"Madrid", tropas:120}] },
-  Inglaterra: { nombre:"Inglaterra", capital:"Londres", territorios:["Londres"], generales:[{nombre:"Francis Drake", territorio:"Londres", tropas:110}] },
-  Imperio_Azteca: { nombre:"Imperio_Azteca", capital:"Tenochtitlan", territorios:["Tenochtitlan"], generales:[{nombre:"Moctezuma", territorio:"Tenochtitlan", tropas:130}] },
-  Imperio_Inca: { nombre:"Imperio_Inca", capital:"Cuzco", territorios:["Cuzco"], generales:[{nombre:"Atahualpa", territorio:"Cuzco", tropas:125}] },
-  Civilización_Maya: { nombre:"Civilización_Maya", capital:"Tikal", territorios:["Tikal"], generales:[{nombre:"Kʼinich Janaabʼ", territorio:"Tikal", tropas:120}] }
+  España: { nombre:"España", capital:"Madrid", territorios:["Madrid"], generales:[{nombre:"Hernán Cortés", territorio:"Madrid", tropas:120}], barcos:[] },
+  Inglaterra: { nombre:"Inglaterra", capital:"Londres", territorios:["Londres"], generales:[{nombre:"Francis Drake", territorio:"Londres", tropas:110}], barcos:[] },
+  Imperio_Azteca: { nombre:"Imperio_Azteca", capital:"Tenochtitlan", territorios:["Tenochtitlan"], generales:[{nombre:"Moctezuma", territorio:"Tenochtitlan", tropas:130}], balsas:[] },
+  Imperio_Inca: { nombre:"Imperio_Inca", capital:"Cuzco", territorios:["Cuzco"], generales:[{nombre:"Atahualpa", territorio:"Cuzco", tropas:125}], balsas:[] },
+  Civilización_Maya: { nombre:"Civilización_Maya", capital:"Tikal", territorios:["Tikal"], generales:[{nombre:"Kʼinich Janaabʼ", territorio:"Tikal", tropas:120}], balsas:[] }
 };
 
 const faccionesIA = [facciones.Inglaterra,facciones.Imperio_Azteca,facciones.Imperio_Inca,facciones.Civilización_Maya];
@@ -36,6 +36,48 @@ const conexiones = {
   Madrid:["La_Hispaniola"], Londres:["Norteamerica"], La_Hispaniola:["Panama","Mexico"], Panama:["Mexico","Peru"],
   Mexico:["Tenochtitlan"], Peru:["Cuzco","Argentina"], Tenochtitlan:["Mexico"], Cuzco:["Peru"], Tikal:["Mexico"], Norteamerica:["Mexico"], Argentina:["Peru"]
 };
+
+/* ================== BARCOS ================== */
+function crearBarcos(){
+  // Cada facción europea crea barcos al inicio
+  facciones.España.barcos.push({capacidad:50,general:null,pos:"Madrid", tropas:0});
+  facciones.Inglaterra.barcos.push({capacidad:50,general:null,pos:"Londres", tropas:0});
+  // Facciones indígenas crean balsas
+  facciones.Imperio_Azteca.balsas.push({capacidad:30,general:null,pos:"Tenochtitlan", tropas:0});
+  facciones.Imperio_Inca.balsas.push({capacidad:30,general:null,pos:"Cuzco", tropas:0});
+  facciones.Civilización_Maya.balsas.push({capacidad:30,general:null,pos:"Tikal", tropas:0});
+}
+
+/* ================== EMBARQUE ================== */
+function subirTropasABarco(){
+  if(!territorioSeleccionado){alert("Selecciona un territorio"); return;}
+  const t=territorios[territorioSeleccionado];
+  const general=jugador.generales[0];
+  if(general.territorio!==territorioSeleccionado){alert("El general debe estar en el territorio"); return;}
+  const barco=jugador.barcos[0];
+  const capacidadDisponible=barco.capacidad-barco.tropas;
+  if(capacidadDisponible<=0){alert("El barco está lleno"); return;}
+  const tropasASubir=Math.min(general.tropas,capacidadDisponible);
+  barco.tropas+=tropasASubir;
+  general.tropas-=tropasASubir;
+  log(`⛴ ${tropasASubir} tropas suben al barco de ${jugador.nombre}`);
+}
+
+function moverBarco(destino){
+  const barco=jugador.barcos[0];
+  barco.pos=destino;
+  log(`⛴ Barco de ${jugador.nombre} navega a ${destino}`);
+}
+
+function desembarcarTropas(){
+  const barco=jugador.barcos[0];
+  const general=jugador.generales[0];
+  if(barco.tropas<=0){alert("No hay tropas en el barco"); return;}
+  general.tropas+=barco.tropas;
+  log(`⚔️ ${barco.tropas} tropas desembarcan en ${barco.pos}`);
+  barco.tropas=0;
+  general.territorio=barco.pos;
+}
 
 /* ================== ASEDIOS ================== */
 let asedios = [];
@@ -86,44 +128,63 @@ canvas.addEventListener("click",(e)=>{
 
 function seleccionarTerritorio(nombre){
   territorioSeleccionado=nombre; const t=territorios[nombre]; document.getElementById("nombreTerritorio").innerText=nombre;
-  let html=""; if(t.dueño!==jugador.nombre){ html+=`<button onclick="atacarJugador()">Atacar</button>`; html+=`<button onclick="pedirAlianza()">Diplomacia</button>`;} else{html="Territorio propio";}
+  let html="";
+  if(t.dueño!==jugador.nombre){
+    html+=`<button onclick="atacarJugador()">Atacar</button>`;
+    html+=`<button onclick="pedirAlianza()">Diplomacia</button>`;
+    html+=`<button onclick="subirTropasABarco()">Subir tropas a barco</button>`;
+    html+=`<button onclick="moverBarco('${nombre}')">Mover barco a este territorio</button>`;
+    html+=`<button onclick="desembarcarTropas()">Desembarcar tropas</button>`;
+  } else{html="Territorio propio";}
   document.getElementById("acciones").innerHTML=html;
 }
-
-function atacarJugador(){
-  const t=territorios[territorioSeleccionado]; const general=jugador.generales[0];
-  if(general.tropas<40){alert("Tropas insuficientes"); return;}
-  t.tropas>general.tropas ? iniciarAsedio(general,territorioSeleccionado,jugador) : atacarIA(general,territorioSeleccionado,jugador);
-  render();
-}
-
-function pedirAlianza(){alert("Diplomacia en desarrollo");}
 
 /* ================== MAPA ================== */
 function dibujarMapa(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   Object.values(territorios).forEach(t=>{
     const pos=posicionesTerritorios[t.nombre];
-    ctx.fillStyle=t.dueño===jugador.nombre?"gold":t.dueño==="Neutral"?"gray":"red";
+    let color = "gray";
+    switch(t.dueño){
+      case jugador.nombre: color="gold"; break;
+      case "Neutral": color="gray"; break;
+      case "España": color="gold"; break;
+      case "Inglaterra": color="red"; break;
+      case "Imperio_Azteca": color="green"; break;
+      case "Imperio_Inca": color="orange"; break;
+      case "Civilización_Maya": color="cyan"; break;
+    }
+    ctx.fillStyle=color;
     ctx.beginPath(); ctx.arc(pos.x,pos.y,20,0,2*Math.PI); ctx.fill();
     ctx.fillStyle="#fff"; ctx.font="12px Arial"; ctx.fillText(t.nombre,pos.x-20,pos.y-25); ctx.fillText(`T:${t.tropas}`,pos.x-15,pos.y+35);
   });
+  // Generales
   jugador.generales.forEach(g=>{const pos=posicionesTerritorios[g.territorio]; ctx.fillStyle="blue"; ctx.fillRect(pos.x-5,pos.y-5,10,10);});
   faccionesIA.forEach(f=>f.generales.forEach(g=>{const pos=posicionesTerritorios[g.territorio]; ctx.fillStyle="green"; ctx.fillRect(pos.x-5,pos.y-5,10,10);}));
+  // Barcos
+  jugador.barcos.forEach(b=>{const pos=posicionesTerritorios[b.pos]; ctx.fillStyle="cyan"; ctx.fillRect(pos.x-8,pos.y-8,16,16);});
 }
 
 function dibujarMiniMapa(){
   miniCtx.clearRect(0,0,mini.width,mini.height);
   Object.values(territorios).forEach(t=>{
     const pos=posicionesTerritorios[t.nombre]; const miniX=pos.x/4; const miniY=pos.y/4;
-    miniCtx.fillStyle=t.dueño===jugador.nombre?"gold":t.dueño==="Neutral"?"gray":"red";
-    miniCtx.fillRect(miniX,miniY,5,5);
+    let color = "gray";
+    switch(t.dueño){
+      case jugador.nombre: color="gold"; break;
+      case "Neutral": color="gray"; break;
+      case "España": color="gold"; break;
+      case "Inglaterra": color="red"; break;
+      case "Imperio_Azteca": color="green"; break;
+      case "Imperio_Inca": color="orange"; break;
+      case "Civilización_Maya": color="cyan"; break;
+    }
+    miniCtx.fillStyle=color; miniCtx.fillRect(miniX,miniY,5,5);
   });
   jugador.generales.forEach(g=>{const pos=posicionesTerritorios[g.territorio]; miniCtx.fillStyle="blue"; miniCtx.fillRect(pos.x/4-2,pos.y/4-2,4,4);});
   faccionesIA.forEach(f=>f.generales.forEach(g=>{const pos=posicionesTerritorios[g.territorio]; miniCtx.fillStyle="green"; miniCtx.fillRect(pos.x/4-2,pos.y/4-2,4,4);}));
+  jugador.barcos.forEach(b=>{const pos=posicionesTerritorios[b.pos]; miniCtx.fillStyle="cyan"; miniCtx.fillRect(pos.x/4-3,pos.y/4-3,6,6);});
 }
-
-function render(){dibujarMapa(); dibujarMiniMapa();}
 
 /* ================== TURNO ================== */
 function siguienteTurno(){turno++; procesarAsedios(); turnoIA(); render(); document.getElementById("turno").innerText=turno; document.getElementById("faccionJugador").innerText=jugador.nombre;}
@@ -132,5 +193,6 @@ function siguienteTurno(){turno++; procesarAsedios(); turnoIA(); render(); docum
 function log(mensaje){document.getElementById("log").innerHTML += mensaje+"<br>";}
 
 /* ================== INICIO ================== */
+crearBarcos();
 render();
 document.getElementById("faccionJugador").innerText=jugador.nombre;
