@@ -1,169 +1,229 @@
-let turno=1, jugador, ia, relacion="neutral", ciudadSeleccionada=null;
+let turno = 1;
+let territorioSeleccionado = null;
 
-/* ===== MAPA ===== */
+function log(texto) {
+  const div = document.getElementById("log");
+  div.innerHTML += texto + "<br>";
+  div.scrollTop = div.scrollHeight;
+}
 
-const territorios={
-  Madrid:crear("Madrid"), Londres:crear("Londres"),
-  Tenochtitlan:crear("Tenochtitlan"), Cuzco:crear("Cuzco"),
-  Tikal:crear("Tikal"), Mexico:crear("Mexico"),
-  Centroamerica:crear("Centroamerica"), Andes:crear("Andes"),
-  Argentina:crear("Argentina"), Brasil:crear("Brasil"),
-  Norteamerica:crear("Norteamerica")
+/* ================= FACCIONES ================= */
+
+const facciones = {
+  España: {
+    nombre: "España",
+    capital: "Madrid",
+    territorios: ["Madrid"],
+    generales: [{ nombre: "Hernán Cortés", territorio: "Madrid", tropas: 120 }],
+  },
+  Inglaterra: {
+    nombre: "Inglaterra",
+    capital: "Londres",
+    territorios: ["Londres"],
+    generales: [{ nombre: "Francis Drake", territorio: "Londres", tropas: 110 }],
+  },
+  Imperio_Azteca: {
+    nombre: "Imperio_Azteca",
+    capital: "Tenochtitlan",
+    territorios: ["Tenochtitlan"],
+    generales: [{ nombre: "Moctezuma", territorio: "Tenochtitlan", tropas: 130 }],
+  },
+  Imperio_Inca: {
+    nombre: "Imperio_Inca",
+    capital: "Cuzco",
+    territorios: ["Cuzco"],
+    generales: [{ nombre: "Atahualpa", territorio: "Cuzco", tropas: 125 }],
+  },
+  Civilización_Maya: {
+    nombre: "Civilización_Maya",
+    capital: "Tikal",
+    territorios: ["Tikal"],
+    generales: [{ nombre: "Kʼinich Janaabʼ", territorio: "Tikal", tropas: 120 }],
+  }
 };
 
-function crear(nombre){
-  return{nombre,dueño:"Neutral",ed:{mercado:0,mina:0,cuartel:0},tropas:40};
+const faccionesIA = [
+  facciones.Inglaterra,
+  facciones.Imperio_Azteca,
+  facciones.Imperio_Inca,
+  facciones.Civilización_Maya
+];
+
+const jugador = facciones.España;
+
+/* ================= TERRITORIOS ================= */
+
+const territorios = {
+  Madrid: { nombre: "Madrid", dueño: "España", tropas: 80 },
+  Londres: { nombre: "Londres", dueño: "Inglaterra", tropas: 80 },
+  Tenochtitlan: { nombre: "Tenochtitlan", dueño: "Imperio_Azteca", tropas: 100 },
+  Cuzco: { nombre: "Cuzco", dueño: "Imperio_Inca", tropas: 100 },
+  Tikal: { nombre: "Tikal", dueño: "Civilización_Maya", tropas: 90 },
+
+  La_Hispaniola: { nombre: "La Hispaniola", dueño: "Neutral", tropas: 40 },
+  Panama: { nombre: "Panamá", dueño: "Neutral", tropas: 40 },
+  Mexico: { nombre: "México", dueño: "Neutral", tropas: 50 },
+  Peru: { nombre: "Perú", dueño: "Neutral", tropas: 50 },
+  Argentina: { nombre: "Argentina", dueño: "Neutral", tropas: 45 },
+  Norteamerica: { nombre: "Norteamérica", dueño: "Neutral", tropas: 60 }
+};
+
+/* ================= MAPA ================= */
+
+const conexiones = {
+  Madrid: ["La_Hispaniola"],
+  Londres: ["Norteamerica"],
+  La_Hispaniola: ["Panama", "Mexico"],
+  Panama: ["Mexico", "Peru"],
+  Mexico: ["Tenochtitlan"],
+  Peru: ["Cuzco", "Argentina"],
+  Tenochtitlan: ["Mexico"],
+  Cuzco: ["Peru"],
+  Tikal: ["Mexico"],
+  Norteamerica: ["Mexico"],
+  Argentina: ["Peru"]
+};
+
+/* ================= ASEDIOS ================= */
+
+let asedios = [];
+
+function iniciarAsedio(general, territorio, faccion) {
+  asedios.push({
+    atacante: faccion.nombre,
+    general: general,
+    territorio: territorio,
+    turnos: 0
+  });
+  log(`🏰 ${faccion.nombre} inicia asedio en ${territorio}`);
 }
 
-/* ===== INICIO ===== */
+function procesarAsedios() {
+  asedios.forEach((a, i) => {
+    const t = territorios[a.territorio];
+    a.turnos++;
+    t.tropas -= 10;
 
-function iniciarJuego(f){
-  document.getElementById("seleccion").style.display="none";
-  document.getElementById("juego").style.display="block";
-
-  jugador={faccion:f,oro:500,ejercito:120,capital:capital(f),territorios:[]};
-  ia={faccion:"IA",oro:500,ejercito:120,territorios:[]};
-
-  territorios[jugador.capital].dueño=f;
-  jugador.territorios.push(jugador.capital);
-
-  actualizar(); render();
-}
-
-function capital(f){
-  return {España:"Madrid",Inglaterra:"Londres",Aztecas:"Tenochtitlan",Incas:"Cuzco",Mayas:"Tikal"}[f];
-}
-
-/* ===== MAPA ===== */
-
-function render(){
-  const m=document.getElementById("mapa");
-  m.innerHTML="";
-  Object.values(territorios).forEach(t=>{
-    const d=document.createElement("div");
-    d.className="territorio "+(t.dueño==="Neutral"?"neutral":t.dueño.toLowerCase());
-    d.innerHTML=`<b>${t.nombre}</b><br>Dueño: ${t.dueño}`;
-    d.onclick=()=>seleccionar(t.nombre);
-    m.appendChild(d);
+    if (t.tropas <= 0) {
+      t.dueño = a.atacante;
+      t.tropas = 40;
+      a.general.territorio = a.territorio;
+      facciones[a.atacante]?.territorios.push(a.territorio);
+      log(`🏳️ ${a.territorio} cae tras asedio`);
+      asedios.splice(i, 1);
+    }
   });
 }
 
-function seleccionar(nombre){
-  ciudadSeleccionada=territorios[nombre];
-  document.getElementById("acciones").style.display="block";
-  document.getElementById("ciudadNombre").innerText=nombre;
+/* ================= IA ================= */
+
+function turnoIA() {
+  faccionesIA.forEach(f => {
+    f.generales.forEach(g => decidirMovimientoIA(g, f));
+  });
 }
 
-/* ===== ACCIONES ===== */
+function decidirMovimientoIA(general, faccion) {
+  const opciones = conexiones[general.territorio];
+  if (!opciones) return;
 
-function conquistar(){
-  const t=ciudadSeleccionada;
-  if(t.dueño===jugador.faccion)return;
+  const destino = opciones[Math.floor(Math.random() * opciones.length)];
+  const t = territorios[destino];
 
-  if(jugador.ejercito<30){log("Ejército insuficiente");return;}
-
-  if(Math.random()>0.4){
-    t.dueño=jugador.faccion;
-    jugador.territorios.push(t.nombre);
-    jugador.ejercito-=30;
-    log("Conquista exitosa de "+t.nombre);
+  if (t.dueño !== faccion.nombre) {
+    if (t.tropas > general.tropas) {
+      iniciarAsedio(general, destino, faccion);
+    } else {
+      atacarIA(general, destino, faccion);
+    }
   } else {
-    jugador.ejercito-=20;
-    log("Fracaso en la conquista");
-  }
-  render(); actualizar();
-}
-
-function construir(tipo){
-  const t=ciudadSeleccionada;
-  if(t.dueño!==jugador.faccion)return;
-  if(jugador.oro<100)return;
-  jugador.oro-=100;
-  t.ed[tipo]++;
-  log("Construido "+tipo+" en "+t.nombre);
-  actualizar();
-}
-
-function reclutar(){
-  const t=ciudadSeleccionada;
-  if(t.dueño!==jugador.faccion)return;
-  if(t.ed.cuartel===0)return;
-  jugador.ejercito+=30;
-  jugador.oro-=50;
-  log("Tropas reclutadas en "+t.nombre);
-  actualizar();
-}
-
-/* ===== DIPLOMACIA ===== */
-
-function pedirComercio(){
-  relacion="comercio";
-  jugador.oro+=100;
-  log("Tratado comercial firmado");
-  actualizar();
-}
-
-function pedirAlianza(){
-  if(Math.random()>0.5){
-    relacion="alianza";
-    log("Alianza formada");
-  } else log("Alianza rechazada");
-  actualizar();
-}
-
-function pedirMatrimonio(){
-  relacion="alianza";
-  jugador.oro+=200;
-  log("Matrimonio dinástico sellado");
-  actualizar();
-}
-
-/* ===== IA ===== */
-
-function turnoIA(){
-  ia.oro+=150;
-  const neutrales=Object.values(territorios).filter(t=>t.dueño==="Neutral");
-  if(neutrales.length>0 && Math.random()>0.5){
-    const t=neutrales[Math.floor(Math.random()*neutrales.length)];
-    t.dueño="IA";
-    ia.territorios.push(t.nombre);
-    log("La IA conquista "+t.nombre);
+    general.territorio = destino;
   }
 }
 
-/* ===== TURNOS ===== */
+function atacarIA(general, destino, faccion) {
+  const t = territorios[destino];
+  const ataque = general.tropas + Math.random() * 40;
+  const defensa = t.tropas + Math.random() * 30;
 
-function finTurno(){
+  if (ataque > defensa) {
+    t.dueño = faccion.nombre;
+    general.territorio = destino;
+    general.tropas -= 20;
+    t.tropas = 40;
+    faccion.territorios.push(destino);
+    log(`⚔️ ${faccion.nombre} conquista ${destino}`);
+  } else {
+    general.tropas -= 30;
+    log(`❌ ${faccion.nombre} falla el ataque en ${destino}`);
+  }
+}
+
+/* ================= INTERFAZ ================= */
+
+function renderMapa() {
+  const mapa = document.getElementById("mapa");
+  mapa.innerHTML = "";
+
+  Object.values(territorios).forEach(t => {
+    const div = document.createElement("div");
+    div.className = `territorio ${t.dueño}`;
+    div.innerHTML = `<strong>${t.nombre}</strong><br>Dueño: ${t.dueño}<br>Tropas: ${t.tropas}`;
+    div.onclick = () => seleccionarTerritorio(t.nombre);
+    mapa.appendChild(div);
+  });
+
+  document.getElementById("turno").innerText = turno;
+  document.getElementById("faccionJugador").innerText = jugador.nombre;
+}
+
+function seleccionarTerritorio(nombre) {
+  territorioSeleccionado = nombre;
+  const t = territorios[nombre];
+  document.getElementById("nombreTerritorio").innerText = nombre;
+
+  let html = "";
+  if (t.dueño !== jugador.nombre) {
+    html += `<button onclick="atacarJugador()">Atacar</button>`;
+    html += `<button onclick="pedirAlianza()">Diplomacia</button>`;
+  } else {
+    html += "Territorio propio";
+  }
+
+  document.getElementById("acciones").innerHTML = html;
+}
+
+function atacarJugador() {
+  const t = territorios[territorioSeleccionado];
+  const general = jugador.generales[0];
+
+  if (general.tropas < 40) {
+    alert("Tropas insuficientes");
+    return;
+  }
+
+  if (t.tropas > general.tropas) {
+    iniciarAsedio(general, territorioSeleccionado, jugador);
+  } else {
+    atacarIA(general, territorioSeleccionado, jugador);
+  }
+
+  renderMapa();
+}
+
+function pedirAlianza() {
+  alert("Diplomacia en desarrollo");
+}
+
+/* ================= TURNO ================= */
+
+function siguienteTurno() {
   turno++;
+  procesarAsedios();
   turnoIA();
-  actualizar(); render();
+  renderMapa();
 }
 
-/* ===== UI ===== */
+/* ================= INICIO ================= */
 
-function actualizar(){
-  document.getElementById("turno").innerText=turno;
-  document.getElementById("oro").innerText=jugador.oro;
-  document.getElementById("ejercito").innerText=jugador.ejercito;
-  document.getElementById("relacion").innerText=relacion;
-}
-
-function log(t){
-  const l=document.getElementById("log");
-  l.innerHTML+=t+"<br>";
-  l.scrollTop=l.scrollHeight;
-}
-
-/* ===== GUARDADO ===== */
-
-function guardar(){
-  localStorage.setItem("conquista",JSON.stringify({turno,jugador,ia,territorios,relacion}));
-  alert("Guardado");
-}
-function cargar(){
-  const d=JSON.parse(localStorage.getItem("conquista"));
-  if(!d)return;
-  ({turno,jugador,ia,relacion}=d);
-  Object.assign(territorios,d.territorios);
-  actualizar(); render();
-}
+renderMapa();
