@@ -1,6 +1,62 @@
-// Estado del juego
+// ================== ESTADO GLOBAL ==================
 let turno = 1;
-let relacion = "guerra"; // guerra | paz | alianza;
+let relacion = "guerra"; // guerra | paz | alianza
+let jugador = null;
+let ia = null;
+
+// ================== TERRITORIOS ==================
+const territorios = {
+  "La Española": { dueño: "Corona Española", riqueza: 100 },
+  "Tenochtitlan": { dueño: "Imperio Azteca", riqueza: 200 },
+  "Cuzco": { dueño: "Imperio Inca", riqueza: 180 },
+  "Tikal": { dueño: "Civilización Maya", riqueza: 160 }
+};
+
+// ================== INICIO DEL JUEGO ==================
+function iniciarJuego(faccionElegida) {
+  document.getElementById("seleccion").style.display = "none";
+  document.getElementById("juego").style.display = "block";
+
+  const facciones = {
+    España: {
+      faccion: "Corona Española",
+      oro: 500,
+      ejercito: 120,
+      moral: 100,
+      territorios: ["La Española"]
+    },
+    Aztecas: {
+      faccion: "Imperio Azteca",
+      oro: 400,
+      ejercito: 140,
+      moral: 100,
+      territorios: ["Tenochtitlan"]
+    },
+    Incas: {
+      faccion: "Imperio Inca",
+      oro: 450,
+      ejercito: 130,
+      moral: 100,
+      territorios: ["Cuzco"]
+    },
+    Mayas: {
+      faccion: "Civilización Maya",
+      oro: 420,
+      ejercito: 125,
+      moral: 100,
+      territorios: ["Tikal"]
+    }
+  };
+
+  jugador = structuredClone(facciones[faccionElegida]);
+
+  const iaKey = Object.keys(facciones).find(f => f !== faccionElegida);
+  ia = structuredClone(facciones[iaKey]);
+
+  actualizarUI();
+}
+
+// ================== DIPLOMACIA ==================
 function pedirPaz() {
   if (Math.random() > 0.4) {
     relacion = "paz";
@@ -21,90 +77,34 @@ function formarAlianza() {
   actualizarUI();
 }
 
-function iniciarJuego(faccionElegida) {
-  document.getElementById("seleccion").style.display = "none";
-  document.getElementById("juego").style.display = "block";
-
-const facciones = {
-  España: {
-    faccion: "Corona Española",
-    oro: 500,
-    ejercito: 120,
-    territorios: ["La Española"]
-  },
-  Aztecas: {
-    faccion: "Imperio Azteca",
-    oro: 400,
-    ejercito: 140,
-    territorios: ["Tenochtitlan"]
-  },
-  Incas: {
-    faccion: "Imperio Inca",
-    oro: 450,
-    ejercito: 130,
-    territorios: ["Cuzco"]
-  },
-  Mayas: {
-    faccion: "Civilización Maya",
-    oro: 420,
-    ejercito: 125,
-    territorios: ["Tikal"]
+// ================== BATALLA ==================
+function atacar(territorio) {
+  if (territorios[territorio].dueño === jugador.faccion) {
+    alert("Ese territorio ya es tuyo");
+    return;
   }
-};
 
-  jugador = JSON.parse(JSON.stringify(facciones[faccionElegida]));
-
-  const iaFaccion = Object.keys(facciones).find(f => f !== faccionElegida);
-  ia = JSON.parse(JSON.stringify(facciones[iaFaccion]));
-
-  actualizarUI();
-}
-
-{let jugador = null;
-let ia = null;
-}
-function turnoIA() {
-  ia.oro += 100;
-
-  if (ia.ejercito > 60) {
-    const posibles = Object.keys(territorios).filter(
-      t => territorios[t].dueño !== ia.faccion
-    );
-
-    if (posibles.length > 0) {
-      const objetivo = posibles[Math.floor(Math.random() * posibles.length)];
-      territorios[objetivo].dueño = ia.faccion;
-      ia.territorios.push(objetivo);
-      ia.ejercito -= 40;
-      alert("La IA ha conquistado " + objetivo);
-    }
-  }
-}
-
-const territorios = {
-  "La Española": { dueño: "España", riqueza: 100, moral: 100
- },
-  "Tenochtitlan": { dueño: "Aztecas", riqueza: 200, moral: 100
-},
-  "Cuzco": { dueño: "Incas", riqueza: 180,  moral: 100
-}
-  "Tikal": { dueño: "Mayas", riqueza: 180, moral: 100}
-};
-
-function siguienteTurno() {
-  turno++;
-  jugador.oro += calcularIngresos();
-  turnoIA();
-  actualizarUI();
-}
-function resolverBatalla(objetivo) {
   if (relacion === "alianza") {
     alert("No podés atacar a un aliado");
-    return false;
+    return;
   }
 
-  const poderJugador = jugador.ejercito + jugador.moral + ventajaMilitar(jugador.faccion);
-  const poderIA = ia.ejercito + ia.moral;
+  if (!resolverBatalla()) return;
+
+  territorios[territorio].dueño = jugador.faccion;
+  jugador.territorios.push(territorio);
+  jugador.ejercito -= 20;
+
+  alert("Territorio conquistado: " + territorio);
+  verificarVictoria();
+  actualizarUI();
+}
+
+function resolverBatalla() {
+  const poderJugador =
+    jugador.ejercito + jugador.moral + ventajaMilitar(jugador.faccion);
+  const poderIA =
+    ia.ejercito + ia.moral;
 
   if (Math.random() * poderJugador > Math.random() * poderIA) {
     jugador.moral += 5;
@@ -118,27 +118,53 @@ function resolverBatalla(objetivo) {
   }
 }
 
-function calcularIngresos() {
-  let ingreso = 0;
-  jugador.territorios.forEach(t => {
-    ingreso += territorios[t].riqueza;
-  });
-  return ingreso;
+// ================== IA ==================
+function turnoIA() {
+  ia.oro += 100;
+  if (ia.ejercito < 60) return;
+
+  const posibles = Object.keys(territorios).filter(
+    t => territorios[t].dueño !== ia.faccion
+  );
+
+  if (posibles.length === 0) return;
+
+  const objetivo = posibles[Math.floor(Math.random() * posibles.length)];
+  territorios[objetivo].dueño = ia.faccion;
+  ia.territorios.push(objetivo);
+  ia.ejercito -= 40;
+
+  alert("La IA conquista " + objetivo);
 }
+
+// ================== TURNO ==================
+function siguienteTurno() {
+  turno++;
+  jugador.oro += calcularIngresos();
+  turnoIA();
+  verificarVictoria();
+  actualizarUI();
+}
+
+function calcularIngresos() {
+  return jugador.territorios.reduce(
+    (acc, t) => acc + territorios[t].riqueza,
+    0
+  );
+}
+
+// ================== VENTAJAS ==================
 function ventajaMilitar(faccion) {
   switch (faccion) {
-    case "Corona Española":
-      return 40; // armas de fuego
-    case "Imperio Azteca":
-      return 30; // guerra ritual
-    case "Imperio Inca":
-      return 25; // logística
-    case "Civilización Maya":
-      return 20; // estrategia y terreno
-    default:
-      return 0;
+    case "Corona Española": return 40;
+    case "Imperio Azteca": return 30;
+    case "Imperio Inca": return 25;
+    case "Civilización Maya": return 20;
+    default: return 0;
   }
 }
+
+// ================== VICTORIA ==================
 function verificarVictoria() {
   if (jugador.faccion === "Corona Española" && jugador.territorios.length >= 4) {
     alert("Victoria histórica: Conquista del Nuevo Mundo");
@@ -149,55 +175,36 @@ function verificarVictoria() {
   }
 }
 
-function atacar(territorio) {
-  if (territorios[territorio].dueño === "España") {
-    alert("Ese territorio ya es tuyo.");
-    return;
-  }
-
-  if (jugador.ejercito < 50) {
-    alert("Ejército insuficiente.");
-    return;
-  }
-
-  jugador.ejercito -= 30;
-  jugador.territorios.push(territorio);
-  territorios[territorio].dueño = "España";
-
-  alert("Has conquistado " + territorio);
-  actualizarUI();
-}
-
+// ================== UI ==================
 function actualizarUI() {
   document.getElementById("turno").innerText = turno;
+  document.getElementById("faccion").innerText = jugador.faccion;
   document.getElementById("oro").innerText = jugador.oro;
   document.getElementById("ejercito").innerText = jugador.ejercito;
+  document.getElementById("moral").innerText = jugador.moral;
   document.getElementById("territorios").innerText =
     jugador.territorios.join(", ");
+  document.getElementById("relacion").innerText = relacion;
 }
-function guardarPartida() {
-  const estado = {
-    turno,
-    jugador,
-    territorios
-  };
 
-  localStorage.setItem("conquista_guardado", JSON.stringify(estado));
-  alert("Partida guardada correctamente");
+// ================== GUARDADO ==================
+function guardarPartida() {
+  localStorage.setItem(
+    "conquista_guardado",
+    JSON.stringify({ turno, jugador, ia, territorios, relacion })
+  );
+  alert("Partida guardada");
 }
 
 function cargarPartida() {
   const data = localStorage.getItem("conquista_guardado");
-
-  if (!data) {
-    alert("No hay partida guardada");
-    return;
-  }
+  if (!data) return alert("No hay partida guardada");
 
   const estado = JSON.parse(data);
-
   turno = estado.turno;
   jugador = estado.jugador;
+  ia = estado.ia;
+  relacion = estado.relacion;
   Object.assign(territorios, estado.territorios);
 
   actualizarUI();
