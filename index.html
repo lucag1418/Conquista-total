@@ -79,3 +79,41 @@
 <script src="game.js"></script>
 </body>
 </html>
+
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Conquista Total - Mapa Físico</title>
+<style>
+  body { font-family: Arial; background:#1e1e1e; color:#eee; margin:0; padding:0; }
+  #topbar { background:#111; padding:10px; display:flex; justify-content:space-between; }
+  #mapaContainer { display:flex; padding:10px; gap:10px; }
+  #mapCanvas { border:1px solid #000; cursor:pointer; }
+  #miniMapa { border:1px solid #000; }
+  #panel { padding:10px; background:#111; width:250px; }
+  button { width:100%; margin:3px 0; }
+  #log { background:#000; height:150px; overflow-y:auto; padding:5px; font-size:13px; }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div>Turno: <span id="turno">1</span></div>
+  <div>Facción: <span id="faccionJugador"></span></div>
+</div>
+
+<div id="mapaContainer">
+  <canvas id="mapCanvas" width="800" height="600"></canvas>
+  <div id="panel">
+    <h3 id="nombreTerritorio">Seleccioná una ciudad</h3>
+    <div id="acciones"></div>
+    <button onclick="siguienteTurno()">Siguiente Turno</button>
+  </div>
+</div>
+
+<canvas id="miniMapa" width="200" height="150"></canvas>
+<div id="log"></div>
+
+<script src="game.js"></script>
+</body>
+</html>
